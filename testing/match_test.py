@@ -1,4 +1,7 @@
-from quran_repository import load_quran_data, normalize_arabic, QURAN_DATA
+from data_access.quranDAO import load_quran_data, normalize_arabic, QURAN_DATA
+
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 def match_ayah(input_text):
     normalized_input = normalize_arabic(input_text)
@@ -16,7 +19,7 @@ def match_ayah(input_text):
 load_quran_data()
 
 # Test input
-input_text =  "الذي خلقكم من نفسٖ"
+input_text =  "الذي خلقكم من"
 result = match_ayah(input_text)
 
 if result:

@@ -3,7 +3,6 @@ from pathlib import Path
 import re
 import pprint
 
-
 QURAN_DATA = []
 
 def normalize_arabic(text: str) -> str:
@@ -46,7 +45,6 @@ def load_quran_data():
 def get_all_ayahs():
     return QURAN_DATA
 
-
 def print_sample_ayahs(n: int = 5):
     if not QURAN_DATA:
         print("❌ QURAN_DATA is empty. Did you forget to call load_quran_data()?")
@@ -58,9 +56,7 @@ def print_sample_ayahs(n: int = 5):
         print("-" * 100)
 
 def get_ayah_data(surah_id: int, ayah_id: int):
-    """
-    Return all data for a specific ayah from QURAN_DATA.
-    """
+    """ Return all data for a specific ayah from QURAN_DATA. """
     for ayah in QURAN_DATA:
         if ayah["surah"] == surah_id and ayah["ayah"] == ayah_id:
             return {
