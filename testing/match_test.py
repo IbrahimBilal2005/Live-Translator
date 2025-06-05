@@ -1,7 +1,8 @@
-from data_access.quranDAO import load_quran_data, normalize_arabic, QURAN_DATA
-
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from data_access.quranDAO import load_quran_data, normalize_arabic, QURAN_DATA
+
 
 def match_ayah(input_text):
     normalized_input = normalize_arabic(input_text)

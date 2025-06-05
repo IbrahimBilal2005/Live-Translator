@@ -1,7 +1,10 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 from services.search_service import list_surahs, get_surah, get_ayah, search_quran
 from data_access.quranDAO import QURAN_DATA, load_quran_data
+
+
 def test_list_surahs():
     print("📘 All Surahs:")
     for s in list_surahs()[:5]:
