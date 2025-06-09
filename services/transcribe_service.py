@@ -1,3 +1,6 @@
+import shutil
+import os
+from uuid import uuid4
 from fastapi import UploadFile
 from fastapi.responses import JSONResponse
 from services.transcribe_audio_service import transcribe_audio
@@ -8,6 +11,22 @@ async def transcribe_and_match(file: UploadFile):
     """Handles the transcription of an audio file and matches the transcription to a Quran ayah."""
     
     print("🎯 POST /transcribe2 was hit")
+
+    # ✅ Step 0: Save uploaded audio for debugging
+    try:
+        debug_dir = "debug_uploads"
+        os.makedirs(debug_dir, exist_ok=True)
+        raw_audio_path = os.path.join(debug_dir, f"raw_{uuid4().hex}.aac")
+
+        with open(raw_audio_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        print(f"🔉 Saved uploaded audio to: {raw_audio_path}")
+
+        # Reset file pointer for later use
+        file.file.seek(0)
+    except Exception as e:
+        print("❌ Failed to save audio file:", str(e))
 
     # Step 1: Transcribe the uploaded audio
     try:
@@ -46,4 +65,3 @@ async def transcribe_and_match(file: UploadFile):
             "transcription": raw_transcription,
             "normalized": normalized_input
         }
-        

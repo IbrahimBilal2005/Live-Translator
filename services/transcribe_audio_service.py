@@ -17,7 +17,7 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 async def transcribe_audio(file: UploadFile) -> str:
-    """ Transcribes the first 2 seconds of an audio file using OpenAI's Whisper model."""
+    """ Transcribes the first 5 seconds of an audio file using OpenAI's Whisper model."""
     
     print("📥 Received file:", file.filename)
 
@@ -28,14 +28,14 @@ async def transcribe_audio(file: UploadFile) -> str:
         temp_path = temp.name
 
     try:
-        print("✂️ Trimming to 2 seconds...")
+        print("✂️ Trimming to 5 seconds...")
         audio = AudioSegment.from_file(temp_path)
-        trimmed_audio = audio[:2000]  # Trim to first 2 seconds (2000ms)
+        trimmed_audio = audio[:5000]  # Trim to first 5 seconds (2000ms)
 
         # Export the trimmed audio to a new temp file
         trimmed_path = temp_path.replace(".mp3", "_trimmed.mp3")
         trimmed_audio.export(trimmed_path, format="mp3")
-
+    
         print("🔁 Sending trimmed audio to Whisper...")
         with open(trimmed_path, "rb") as audio_file:
             transcript = client.audio.transcriptions.create(
