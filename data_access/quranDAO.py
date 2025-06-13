@@ -21,6 +21,7 @@ def load_quran_data():
 
     for surah in raw_data:
         surah_id = surah["id"]
+        surah_name = surah["name"]
         for verse in surah["verses"]:
             text_ar = verse["text"]
             translation = verse["translation"]
@@ -34,6 +35,7 @@ def load_quran_data():
 
             QURAN_DATA.append({
                 "surah": surah_id,
+                "surah_name": surah_name, 
                 "ayah": verse["id"],
                 "text_ar": text_ar,
                 "translation": translation,
@@ -61,17 +63,18 @@ def get_ayah_data(surah_id: int, ayah_id: int):
         if ayah["surah"] == surah_id and ayah["ayah"] == ayah_id:
             return {
                 "surah": ayah["surah"],
+                "surah_name": ayah["surah_name"],  # ✅ Include this
                 "ayah": ayah["ayah"],
                 "text_ar": ayah["text_ar"],
                 "translation": ayah["translation"],
                 "normalized_ar": ayah["normalized_ar"],
                 "word_count": ayah["word_count"],
                 "start_phrases": ayah["start_phrases"]
-            }
+        }
     return None
 
 if __name__ == "__main__":
     QURAN_DATA.clear()  # Clear any existing data
     load_quran_data()
-    aya_info = get_ayah_data(4, 1)  # Example to get data for Surah Al-Kahf, Ayah 1
+    aya_info = get_ayah_data(71, 6)  # Example to get data for Surah Al-Kahf, Ayah 1
     print(aya_info)

@@ -1,15 +1,19 @@
 from fastapi import APIRouter, HTTPException
-from services.search_service import list_surahs, get_surah, get_ayah, search_quran
+from services.search_service import get_ayah, search_quran  # Keep only what's needed
+from services.surah_service import get_surah_by_number, get_all_surahs
 
 router = APIRouter()
 
 @router.get("/surahs")
 def api_list_surahs():
-    return list_surahs()
+    result = get_all_surahs()
+    print("🧾 Returning surah list:", result[:3])  # Print first 3 entries only
+
+    return result
 
 @router.get("/surahs/{surah_id}")
 def api_get_surah(surah_id: int):
-    surah = get_surah(surah_id)
+    surah = get_surah_by_number(surah_id)
     if not surah:
         raise HTTPException(status_code=404, detail="Surah not found")
     return surah
@@ -25,3 +29,5 @@ def api_get_ayah(surah_id: int, ayah_id: int):
 def api_search_quran(q: str):
     results = search_quran(q)
     return {"count": len(results), "results": results}
+
+

@@ -1,23 +1,18 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_home_screen.dart';
 
-void main() {
-  print("✅ Quran app custom main loaded");
-  runApp(const MyApp());
-}
+void main() => runApp(const QuranApp());
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class QuranApp extends StatelessWidget {
+  const QuranApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Quran Audio Matcher',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-      ),
-      home: const HomeScreen(),
+      theme: ThemeData.dark(),
+      home: const MainHomeScreen(),
     );
   }
 }

@@ -5,7 +5,7 @@ from fastapi import UploadFile
 from fastapi.responses import JSONResponse
 from services.transcribe_audio_service import transcribe_audio
 from services.matching_service import match_transcription_to_ayah
-from data_access.quranDAO import normalize_arabic
+from data_access.quranDAO import normalize_arabic, QURAN_DATA
 
 async def transcribe_and_match(file: UploadFile):
     """Handles the transcription of an audio file and matches the transcription to a Quran ayah."""
@@ -47,14 +47,31 @@ async def transcribe_and_match(file: UploadFile):
     # Step 4: Return result
     if best_match:
         print("✅ Match found:", best_match["text_ar"])
+
+        matched_surah_id = best_match["surah"]
+        full_surah = sorted([
+            {
+                "surah": ayah["surah"],  # ✅ Add this
+                "ayah": ayah["ayah"],
+                "arabic_text": ayah["text_ar"],
+                "translation": ayah["translation"]
+            }
+            for ayah in QURAN_DATA
+            if ayah["surah"] == matched_surah_id and ayah["ayah"] > 0 and ayah["text_ar"].strip()
+        ], key=lambda x: x["ayah"])
+
+
         return {
             "match_found": True,
             "matched_ayah": {
                 "surah": best_match["surah"],
+                "surah_name": best_match.get("surah_name", f"Surah {best_match['surah']}"),
                 "ayah": best_match["ayah"],
                 "arabic_text": best_match["text_ar"],
                 "translation": best_match["translation"]
             },
+            "surah_name": best_match.get("surah_name", f"Surah {best_match['surah']}"),
+            "full_surah": full_surah,
             "transcription": raw_transcription,
             "normalized": normalized_input
         }
