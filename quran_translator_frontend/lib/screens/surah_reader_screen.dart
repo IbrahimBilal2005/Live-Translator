@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import '../services/api_service.dart';
 
 class SurahReaderScreen extends StatefulWidget {
@@ -9,12 +10,16 @@ class SurahReaderScreen extends StatefulWidget {
 }
 
 class _SurahReaderScreenState extends State<SurahReaderScreen> {
-  static const double surahNameFontSize = 50.0;
-  static const double bismillahFontSize = 20.0;
-
   List<Map<String, dynamic>> _surahList = [];
   Map<String, dynamic>? _selectedSurahData;
   bool _isLoading = false;
+
+  static const double surahNameFontSize = 42.0;
+  static const double bismillahFontSize = 20.0;
+  static const double arabicFontSize = 26.0;
+  static const double translationFontSize = 14.0;
+  static const Color backgroundColor = Color(0xFF202125);
+  static const Color dropdownFillColor = Color(0xFF2C2C2E);
 
   @override
   void initState() {
@@ -52,55 +57,98 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF202125),
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text("Read Surah"),
         backgroundColor: Colors.black,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              DropdownButtonFormField<int>(
-                
-                decoration: InputDecoration(
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            DropdownSearch<Map<String, dynamic>>(
+              items: _surahList,
+              itemAsString: (surah) =>
+                  '${surah["id"]}. ${surah["transliteration"] ?? surah["translation"] ?? surah["name"]}',
+              popupProps: PopupProps.dialog(
+                showSearchBox: true,
+                searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                    hintText: "Search Surah...",
+                    hintStyle: const TextStyle(color: Colors.white60),
                     filled: true,
-                    fillColor: Colors.white10,
-                    labelText: "Select a Surah",
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    focusedBorder: OutlineInputBorder(
+                    fillColor: dropdownFillColor,
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.greenAccent.withOpacity(0.5)),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.greenAccent, width: 2),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.greenAccent.withOpacity(0.5), width: 1),
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.greenAccent.withOpacity(0.5)),
                     ),
-                    border: const OutlineInputBorder(),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                ),
                 ),
 
-                dropdownColor: Colors.grey[900],
-                style: const TextStyle(color: Colors.white),
-                items: _surahList.map((surah) {
-                  final id = surah['id'];
-                  final name = surah['transliteration'] ??
-                      surah['translation'] ??
-                      surah['name'] ??
-                      'Unnamed';
-                  return DropdownMenuItem<int>(
-                    value: id,
-                    child: Text('$id. $name',
-                        style: const TextStyle(color: Colors.white)),
-                  );
-                }).toList(),
-                onChanged: _onSurahSelected,
-              ),
-              const SizedBox(height: 20),
-              if (_isLoading)
-                const Center(child: CircularProgressIndicator()),
-              if (_selectedSurahData != null)
-                Expanded(child: _buildSurahDisplay(_selectedSurahData!)),
-            ],
-          ),
+              dropdownDecoratorProps: DropDownDecoratorProps(
+                dropdownSearchDecoration: InputDecoration(
+                    labelText: "Select a Surah",
+                    labelStyle: TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: Color(0xFF202125), // Dark grey background
+                    border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.greenAccent), // Green border
+                    borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.greenAccent), // Green border
+                    borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.greenAccent, width: 2), // Thicker green border on focus
+                    borderRadius: BorderRadius.circular(8),
+                    ),
+                ),
+                ),
+
+              onChanged: (selected) {
+                if (selected != null) {
+                  _onSurahSelected(selected["id"]);
+                }
+              },
+             selectedItem: _surahList.any((s) => s["id"] == _selectedSurahData?["surah"])
+                ? _surahList.firstWhere((s) => s["id"] == _selectedSurahData?["surah"])
+                : null,
+
+
+              dropdownBuilder: (context, selectedItem) {
+                if (selectedItem == null || selectedItem["id"] == null) {
+                    return const Text(
+                    "Select a Surah",
+                    style: TextStyle(color: Colors.white54),
+                    );
+                }
+
+                final name = selectedItem["transliteration"] ??
+                    selectedItem["translation"] ??
+                    selectedItem["name"] ??
+                    '';
+
+                return Text(
+                    '${selectedItem["id"]}. $name',
+                    style: const TextStyle(color: Colors.white),
+                );
+                },
+
+            ),
+            const SizedBox(height: 20),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator()),
+            if (_selectedSurahData != null)
+              Expanded(child: _buildSurahDisplay(_selectedSurahData!)),
+          ],
         ),
       ),
     );
@@ -108,8 +156,6 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
 
   Widget _buildSurahDisplay(Map<String, dynamic> surahData) {
     final ayahs = surahData['ayahs'] as List<dynamic>;
-    final surahName = surahData['surah_name'] ?? '';
-    final surahId = surahData['surah'] ?? '';
 
     return ListView.builder(
       itemCount: ayahs.length + 1,
@@ -117,28 +163,23 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
         if (index == 0) {
           return Column(
             children: [
-              const SizedBox(height: 10),
               Text(
-                surahName,
-                textAlign: TextAlign.center,
+                surahData["surah_name"] ?? '',
                 style: TextStyle(
                   fontSize: surahNameFontSize,
-                  fontFamily: 'Amiri',
-                  fontWeight: FontWeight.bold,
                   color: Colors.white,
+                  fontFamily: 'Amiri',
                 ),
               ),
-              const SizedBox(height: 8),
-              if (surahId != 9) // Skip Bismillah for Surah At-Tawbah
-                const Text(
-                  "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: bismillahFontSize,
-                    fontFamily: 'Amiri',
-                    color: Colors.white70,
-                  ),
+              const SizedBox(height: 15),
+              const Text(
+                "﷽",
+                style: TextStyle(
+                  fontSize: bismillahFontSize,
+                  color: Colors.white70,
+                  fontFamily: 'Amiri',
                 ),
+              ),
               const SizedBox(height: 20),
             ],
           );
@@ -164,8 +205,8 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
               child: Text(
                 arabic,
                 textAlign: TextAlign.right,
-                style: const TextStyle(
-                  fontSize: 26.0,
+                style: TextStyle(
+                  fontSize: arabicFontSize,
                   fontFamily: 'Amiri',
                   color: Colors.white,
                   height: 1.8,
@@ -178,7 +219,7 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
               child: Text(
                 translation,
                 textAlign: TextAlign.left,
-                style: const TextStyle(fontSize: 14.0, color: Colors.white70),
+                style: TextStyle(fontSize: translationFontSize, color: Colors.white70),
               ),
             ),
             const SizedBox(height: 12),

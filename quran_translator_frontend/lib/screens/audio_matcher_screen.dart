@@ -138,16 +138,22 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
   Widget _buildRecordingButton() {
     return Center(
       child: ElevatedButton.icon(
-        icon: Icon(_isRecording ? Icons.stop : Icons.mic),
-        label: Text(_isRecording ? "Stop Recording" : "Start Recording"),
+        icon: Icon(_isRecording ? Icons.stop : Icons.mic,
+            color: Colors.white), // explicitly set icon color
+        label: Text(
+          _isRecording ? "Stop Recording" : "Start Recording",
+          style: const TextStyle(color: Colors.white), // make text white for better contrast
+        ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: _isRecording ? Colors.redAccent : Colors.green,
+          backgroundColor: _isRecording ? Colors.redAccent : Colors.greenAccent.withOpacity(0.5), // background green
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          foregroundColor: Colors.white, // ensures text & icon color are white
         ),
         onPressed: _isRecording ? _stopRecording : _startRecording,
       ),
     );
   }
+
 
   Widget _buildResultsView() {
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToMatchedAyah());
@@ -178,9 +184,9 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         const Text(
-          "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ",
+          "﷽",  // Beautiful Basmala ligature character
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: bismillahFontSize,
@@ -192,6 +198,7 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
       ],
     );
   }
+
 
   Widget _buildAyahList() {
     return ScrollablePositionedList.builder(

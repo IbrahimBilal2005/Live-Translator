@@ -1,28 +1,33 @@
 from data_access.quranDAO import QURAN_DATA
-
-def list_surahs():
-    """ Returns a list of all surahs in the Quran with their IDs and number of ayahs."""
-    surahs = {}
-    for ayah in QURAN_DATA:
-        sid = ayah["surah"]
-        if sid not in surahs:
-            surahs[sid] = {"id": sid, "ayahs": 0}
-        surahs[sid]["ayahs"] += 1
-    return list(surahs.values())
+import json
+from pathlib import Path
 
 def get_surah(surah_id: int):
     """ Returns all ayahs for a given surah ID."""
     return [a for a in QURAN_DATA if a["surah"] == surah_id]
 
-def get_ayah(surah_id: int, ayah_id: int):
-    """ Retrieves a specific ayah by surah and ayah ID."""
-    return next((a for a in QURAN_DATA if a["surah"] == surah_id and a["ayah"] == ayah_id), None)
+def get_surah_by_number(surah_number: int) -> dict | None:
+    ayahs = [ayah for ayah in QURAN_DATA if ayah["surah"] == surah_number]
+    if not ayahs:
+        return None
 
-def search_quran(query: str):
-    """ Searches the Quran for normalized ayahs containing the given query string."""
-    query = query.strip().lower()
-    results = []
-    for ayah in QURAN_DATA:
-        if query in ayah["normalized_ar"].lower() or query in ayah["translation"].lower():
-            results.append(ayah)
-    return results
+    return {
+        "surah": surah_number,
+        "surah_name": ayahs[0].get("surah_name", ""),
+        "ayahs": ayahs
+    }
+
+def get_all_surahs() -> list[dict]:
+    file_path = Path("data_access/quran_en.json")
+    with open(file_path, "r", encoding="utf-8") as f:
+        raw_data = json.load(f)
+
+    return sorted([
+        {
+            "id": surah["id"],
+            "name": surah["name"],
+            "transliteration": surah.get("transliteration", ""),
+            "translation": surah.get("translation", "")
+        }
+        for surah in raw_data
+    ], key=lambda x: x["id"])
