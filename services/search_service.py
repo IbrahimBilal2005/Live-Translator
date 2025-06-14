@@ -1,6 +1,11 @@
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 from data_access.quranDAO import QURAN_DATA
 import json
 from pathlib import Path
+import random
+
 
 def get_surah(surah_id: int):
     """ Returns all ayahs for a given surah ID."""
@@ -31,3 +36,16 @@ def get_all_surahs() -> list[dict]:
         }
         for surah in raw_data
     ], key=lambda x: x["id"])
+
+def get_random_ayah() -> dict | None:
+    print(f"📦 QURAN_DATA has {len(QURAN_DATA)} ayahs.")
+    if not QURAN_DATA:
+        print("⚠️ QURAN_DATA is empty!")
+        return None
+
+    ayah = random.choice(QURAN_DATA)
+    print(f"🎲 Selected ayah: {ayah}")
+    return ayah
+
+if __name__ == "__main__":
+    print(get_random_ayah())

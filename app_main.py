@@ -5,7 +5,6 @@ from data_access.quranDAO import load_quran_data, QURAN_DATA
 from api_routes import register_routes
 
 load_dotenv()
-QURAN_DATA.clear()
 load_quran_data()
 
 app = FastAPI()

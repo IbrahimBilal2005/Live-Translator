@@ -1,4 +1,5 @@
 // audio_matcher_screen.dart
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -14,24 +15,26 @@ class AudioMatcherScreen extends StatefulWidget {
 }
 
 class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
-  // === Constants ===
   static const double arabicFontSize = 26.0;
   static const double translationFontSize = 14.0;
   static const double surahNameFontSize = 50.0;
   static const double bismillahFontSize = 20.0;
   static const double referenceFontSize = 13.0;
 
-  // === Recorder and Scroll Setup ===
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
 
-  // === State Variables ===
   bool _isRecording = false;
   String? _filePath;
   String? _transcription;
   Map<String, dynamic>? _matchedAyah;
   List<dynamic>? _fullSurah;
+  bool _isFindingMatch = false;
+
+  String _listeningText = "Listening";
+  Timer? _dotTimer;
+  int _dotCount = 0;
 
   @override
   void initState() {
@@ -49,6 +52,16 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
     final path = '${tempDir.path}/recorded.aac';
 
     await _recorder.startRecorder(toFile: path);
+    _dotCount = 0;
+    _listeningText = "Listening";
+    _dotTimer?.cancel();
+    _dotTimer = Timer.periodic(Duration(milliseconds: 300), (timer) {
+      setState(() {
+        _dotCount = (_dotCount + 1) % 4;
+        _listeningText = "Listening" + "." * _dotCount;
+      });
+    });
+
     setState(() {
       _isRecording = true;
       _filePath = path;
@@ -60,11 +73,16 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
 
   Future<void> _stopRecording() async {
     await _recorder.stopRecorder();
-    setState(() => _isRecording = false);
+    _dotTimer?.cancel();
+    setState(() {
+      _isRecording = false;
+      _isFindingMatch = true;
+    });
 
     if (_filePath != null) {
       final result = await ApiService.uploadAudio(File(_filePath!));
       setState(() {
+        _isFindingMatch = false;
         if (result['error'] == true) {
           _transcription = result['message'];
         } else {
@@ -102,6 +120,7 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
   @override
   void dispose() {
     _recorder.closeRecorder();
+    _dotTimer?.cancel();
     super.dispose();
   }
 
@@ -127,33 +146,105 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Expanded(child: SizedBox()),
+          Expanded(
+            child: Center(
+              child: _isFindingMatch
+                  ? _buildFindingMatchIndicator()
+                  : _isRecording
+                      ? _buildRecordingIndicator()
+                      : _buildIdlePrompt(),
+            ),
+          ),
           _buildRecordingButton(),
         ],
       ),
     );
   }
 
+  Widget _buildFindingMatchIndicator() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: const [
+        CircularProgressIndicator(color: Colors.greenAccent),
+        SizedBox(height: 20),
+        Text(
+          "Finding the matching verse...",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 16,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIdlePrompt() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.mic_none, size: 80, color: Colors.white54),
+        const SizedBox(height: 20),
+        const Text(
+          "Press the button below and recite a verse.\nWe'll try to find the match for you.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 16,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecordingIndicator() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 10),
+        Icon(Icons.mic, size: 80, color: Colors.greenAccent),
+        const SizedBox(height: 20),
+        Text(
+          _listeningText,
+          style: const TextStyle(
+            color: Colors.greenAccent,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          "Recite clearly and we'll find the verse.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildRecordingButton() {
     return Center(
       child: ElevatedButton.icon(
-        icon: Icon(_isRecording ? Icons.stop : Icons.mic,
-            color: Colors.white), // explicitly set icon color
+        icon: Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.white),
         label: Text(
           _isRecording ? "Stop Recording" : "Start Recording",
-          style: const TextStyle(color: Colors.white), // make text white for better contrast
+          style: const TextStyle(color: Colors.white),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: _isRecording ? Colors.redAccent : Colors.greenAccent.withOpacity(0.5), // background green
+          backgroundColor:
+              _isRecording ? Colors.redAccent : Colors.greenAccent.withOpacity(0.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          foregroundColor: Colors.white, // ensures text & icon color are white
+          foregroundColor: Colors.white,
         ),
         onPressed: _isRecording ? _stopRecording : _startRecording,
       ),
     );
   }
-
 
   Widget _buildResultsView() {
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToMatchedAyah());
@@ -163,8 +254,24 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (_matchedAyah != null) _buildMatchedHeader(),
-          Expanded(child: _buildAyahList()),
+          if (_matchedAyah != null)
+            _buildMatchedHeader()
+          else
+            Expanded(
+              child: Center(
+                child: Text(
+                  "No match found. Please try again.",
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          if (_fullSurah != null && _matchedAyah != null)
+            Expanded(child: _buildAyahList()),
           _buildRecordingButton(),
         ],
       ),
@@ -186,7 +293,7 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
         ),
         const SizedBox(height: 10),
         const Text(
-          "﷽",  // Beautiful Basmala ligature character
+          "﷽",
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: bismillahFontSize,
@@ -198,7 +305,6 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
       ],
     );
   }
-
 
   Widget _buildAyahList() {
     return ScrollablePositionedList.builder(

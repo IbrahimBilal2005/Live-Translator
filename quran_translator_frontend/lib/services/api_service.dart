@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   static const String baseUrl = 'http://10.0.2.2:8000';
 
+  // Upload audio and get transcription/match
   static Future<Map<String, dynamic>> uploadAudio(File file) async {
     final uri = Uri.parse('$baseUrl/audio/transcribe2');
     final request = http.MultipartRequest('POST', uri)
@@ -27,6 +28,7 @@ class ApiService {
     }
   }
 
+  // Fetch full list of Surahs
   static Future<List<Map<String, dynamic>>> fetchSurahList() async {
     final uri = Uri.parse('$baseUrl/quran/surahs');
     try {
@@ -42,12 +44,11 @@ class ApiService {
     }
   }
 
+  // ✅ Fetch one surah by ID (needed by SurahReaderScreen)
   static Future<Map<String, dynamic>> fetchSurahById(int surahId) async {
     final uri = Uri.parse('$baseUrl/quran/surahs/$surahId');
     try {
       final response = await http.get(uri);
-      print("Surah response: ${response.body}");
-
       if (response.statusCode == 200) {
         return jsonDecode(utf8.decode(response.bodyBytes));
       } else {
@@ -55,6 +56,22 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Error fetching surah: $e');
+    }
+  }
+
+  // Fetch a random ayah with utf8 decode
+  static Future<Map<String, dynamic>?> fetchRandomAyah() async {
+    final uri = Uri.parse('$baseUrl/quran/random-ayah');
+    try {
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        return jsonDecode(utf8.decode(response.bodyBytes));
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('❌ Error fetching random ayah: $e');
+      return null;
     }
   }
 }

@@ -37,6 +37,21 @@ async def transcribe_and_match(file: UploadFile):
 
     print("🔤 Raw Transcription:", raw_transcription)
 
+    # Step 1.5: Check for unwanted fallback phrases
+    UNWANTED_PHRASES = [
+        "اشتركوا في القناة",
+        "ترجمة نانسي قنقر",
+        "subscribe to the channel",
+        # Add other unwanted phrases here if needed
+    ]
+    if raw_transcription.strip().lower() in [p.lower() for p in UNWANTED_PHRASES]:
+        print("❌ Detected unwanted fallback transcription, returning no match")
+        return {
+            "match_found": False,
+            "transcription": "",
+            "normalized": ""
+        }
+
     # Step 2: Normalize the transcription
     normalized_input = normalize_arabic(raw_transcription)
     print("🔎 Normalized Input:", normalized_input)

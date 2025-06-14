@@ -36,6 +36,7 @@ dependencies:
   flutter_sound: ^9.2.13
   scrollable_positioned_list: ^0.3.8
   dropdown_search: ^5.0.6
+  shared_preferences: ^2.2.2
   
 
   # The following adds the Cupertino Icons font to your application.
@@ -61,7 +62,7 @@ flutter:
   fonts:
     - family: Amiri
       fonts:
-        - asset: assets/fonts/Amiri-1.002/Amiri-Regular.ttf
+        - asset: assets/fonts/Amiri-1.002/AmiriQuran.ttf
         - asset: assets/fonts/Amiri-1.002/Amiri-Bold.ttf
           weight: 700
   assets:
