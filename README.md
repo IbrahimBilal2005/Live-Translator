@@ -6,7 +6,7 @@ We're building something meaningful — a seamless way to follow along with Qura
 
 ---
 
-## ✨ Key Features
+## 📖 Key Features
 
 - 🌿 **Live Recitation Mode** – Transcribes and translates recitation in real-time  
 - 🌿 **Regular Reading Mode** – Browse and read the Quran with translations without audio  
@@ -37,17 +37,13 @@ We're building something meaningful — a seamless way to follow along with Qura
 
 </div>
 
-
-
-
-
 ---
 
-## 🚀 Coming Soon, Insha’Allah!
+## 📖 Coming Soon, Insha’Allah!
 
 Stay tuned for the official launch!
 
 ---
 
-💡 **Got feedback or want to contribute early?**  
-Open an issue or [reach out](https://github.com/IbrahimBilal2005/QuranLive/issues)!
+**Got feedback?**  
+Open an [issue](https://github.com/IbrahimBilal2005/QuranLive/issues)
