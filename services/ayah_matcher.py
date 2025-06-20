@@ -18,8 +18,7 @@ def token_match_features(transcribed_tokens: list[str], target_text: str) -> tup
 
 def ending_similarity(transcribed_tokens: list[str], target_text: str) -> int:
     """
-    Score based on how many of the final tokens in the transcription
-    match the final tokens of the candidate ayah.
+    Score based on how many of the final tokens in the transcription match the final tokens of the candidate ayah.
     """
     target_tokens = target_text.split()
     input_end = transcribed_tokens[-3:] if len(transcribed_tokens) >= 3 else transcribed_tokens
@@ -27,46 +26,50 @@ def ending_similarity(transcribed_tokens: list[str], target_text: str) -> int:
     return sum(1 for token in input_end if token in target_end)
 
 def compute_score(input_text: str, target_text: str, tokens: list[str], ayah: dict) -> float:
-    fuzzy = fuzz.partial_ratio(input_text, target_text)
-    token_ratio = fuzz.token_set_ratio(input_text, target_text)
-    match_count, missing_count = token_match_features(tokens, target_text)
-    end_similarity_score = ending_similarity(tokens, target_text)
+    """
+    Assign a weighted score to the similarity between transcription and ayah.
+    Factors considered:
+    - fuzzy string match
+    - token-based similarity
+    - rare/missing token match
+    - ending similarity boost
+    - slight bonus for first ayahs in surahs
+    """
+    fuzzy = fuzz.partial_ratio(input_text, target_text)  # general partial string match
+    token_ratio = fuzz.token_set_ratio(input_text, target_text) # full token similarity
+    match_count, missing_count = token_match_features(tokens, target_text) # boost for overlap, penalize for mismatches
+    end_similarity_score = ending_similarity(tokens, target_text) # extra boost for matching endings
 
     score = (
-        0.45 * fuzzy +
+        0.45 * fuzzy + 
         0.25 * token_ratio +
         0.2 * (match_count * 10 - missing_count * 10) +
         0.1 * end_similarity_score * 10
     )
 
-    # Optional: bonus if it's the first ayah of a surah
     if ayah.get("ayah", 0) == 1:
-        score += 5
+        score += 5 # small bonus if it's the first ayah of a surah
 
     return score
 
 def match_transcription_to_ayah(normalized_input: str) -> dict | None:
     """
-    Match normalized Arabic transcription to the best-fitting Quran ayah.
-    Combines fuzzy matching, token overlap, and ending token emphasis.
-
-    Args:
-        normalized_input (str): Transcribed text (normalized Arabic).
-
-    Returns:
-        dict | None: The best-matching ayah, or None if no good match is found.
+    Given a normalized Arabic transcription, find the most likely matching ayah.
+    Tries both the full ayah text and its listed start phrases (if any).
     """
     tokens = normalized_input.split()
     best_match = None
     best_score = 0
 
     for ayah in QURAN_DATA:
+        # Score the match against the full ayah
         score = compute_score(normalized_input, ayah["normalized_ar"], tokens, ayah)
 
         if score > best_score:
             best_score = score
             best_match = ayah
-
+        
+        # Also check all of its predefined start phrases (for better matching early parts)
         for phrase in ayah.get("start_phrases", []):
             if is_valid_phrase(phrase):
                 phrase_score = compute_score(normalized_input, phrase, tokens, ayah)
@@ -74,6 +77,6 @@ def match_transcription_to_ayah(normalized_input: str) -> dict | None:
                     best_score = phrase_score
                     best_match = ayah
 
-    # Optional: require minimum confidence threshold
+    # Require a minimum score to avoid bad matches from weak input
     min_threshold = len(tokens) * 8 + 30
     return best_match if best_score >= min_threshold else None
