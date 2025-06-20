@@ -1,40 +1,69 @@
+# === PYTHON BACKEND ===
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *.so
 
-# Virtual environment
+# Virtual environments
 venv/
 env/
 
 # Environment variables
 .env
 
-# IDE/editor settings
-.vscode/
-.idea/
+# Logs, cache, temp
+*.log
+*.tmp
+*.pid
+*.sqlite3
+*.db
 
-# OS-specific files
-.DS_Store
-Thumbs.db
+# Pytest and notebooks
+.pytest_cache/
+*.ipynb_checkpoints
 
-# Audio or media files
+# Media/audio
 *.mp3
 *.wav
 *.aac
 *.m4a
-
-# Logs or temp files
-*.log
-*.tmp
-
-# VS Code notebooks
-*.ipynb_checkpoints
-
-# Pytest cache
-.pytest_cache/
-
-# Pydub/temp audio exports
 *.raw
 *.flac
 *.ogg
+
+# === FLUTTER FRONTEND ===
+
+# Flutter build outputs
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies/
+frontend/.packages
+frontend/.metadata
+
+# IntelliJ / Android Studio
+frontend/.idea/
+frontend/*.iml
+
+# VS Code
+frontend/.vscode/
+
+# macOS / Windows / Linux build artifacts (if unedited)
+frontend/macos/Flutter/ephemeral/
+frontend/windows/flutter/ephemeral/
+frontend/linux/flutter/ephemeral/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# === IMAGES / EXTRAS ===
+
+# Optional: ignore debug/test screenshots
+*.png
+*.jpg
+*.jpeg
+
+# Keep this if flutter_01.png is not needed in version control:
+# frontend/flutter_01.png
