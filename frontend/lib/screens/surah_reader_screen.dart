@@ -9,6 +9,9 @@ import '../widgets/bismillah_header.dart';
 import '../widgets/status_prompt.dart';
 import '../widgets/surah_dropdown_search.dart';
 import '../widgets/recent_surah_chips.dart';
+import '../widgets/random_ayah_card.dart';
+import '../widgets/search_header.dart';
+import '../widgets/surah_header_bar.dart';
 
 class SurahReaderScreen extends StatefulWidget {
   const SurahReaderScreen({super.key});
@@ -72,10 +75,13 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
     final lastFetchMillis = prefs.getInt('random_ayah_last_fetch') ?? 0;
     final lastFetchTime = DateTime.fromMillisecondsSinceEpoch(lastFetchMillis);
     final cached = prefs.getString('random_ayah_cache');
+
     if (_randomAyah == null && cached != null) {
       setState(() => _randomAyah = jsonDecode(cached));
     }
+
     if (now.difference(lastFetchTime).inMinutes < 60) return;
+
     try {
       final data = await ApiService.fetchRandomAyah();
       if (data != null) {
@@ -132,13 +138,7 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 8.0),
-            child: Text(
-              "Search the Quran...",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70),
-            ),
-          ),
+          const SearchHeader(),
           SurahDropdownSearch(
             surahList: _surahList,
             onSurahSelected: _onSurahSelected,
@@ -150,7 +150,7 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
               onSurahTap: _onSurahSelected,
             ),
           if (_randomAyah != null)
-            StatusPrompt(
+            RandomAyahCard(
               ayahData: _randomAyah!,
               onRefresh: () async {
                 final prefs = await SharedPreferences.getInstance();
@@ -171,23 +171,14 @@ class _SurahReaderScreenState extends State<SurahReaderScreen> {
       itemCount: ayahs.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _selectedSurahData = null;
-                    _showSearchView = true;
-                  });
-                },
-                icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
-                label: const Text("Back to search", style: TextStyle(color: Colors.greenAccent)),
-              ),
-              Center(
-                child: BismillahHeader(surahName: surahData["surah_name"] ?? ''),
-              ),
-            ],
+          return SurahHeaderBar(
+            surahName: surahData["surah_name"] ?? '',
+            onBack: () {
+              setState(() {
+                _selectedSurahData = null;
+                _showSearchView = true;
+              });
+            },
           );
         }
 

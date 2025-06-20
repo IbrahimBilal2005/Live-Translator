@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import '../config.dart';
+import '../config/app_config.dart';
 
 /// A service class to handle API requests for the QuranLive app
 class ApiService {
