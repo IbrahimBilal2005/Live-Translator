@@ -73,6 +73,25 @@ def get_ayah_data(surah_id: int, ayah_id: int):
         }
     return None
 
+def get_all_surahs() -> list[dict]:
+    """
+    Load top-level Surah data (name, id, translation) from the Quran JSON file.
+    """
+    file_path = Path("data_access/quran_en.json")
+    with open(file_path, "r", encoding="utf-8") as f:
+        raw_data = json.load(f)
+
+    return sorted([
+        {
+            "id": surah["id"],
+            "name": surah["name"],
+            "transliteration": surah.get("transliteration", ""),
+            "translation": surah.get("translation", "")
+        }
+        for surah in raw_data
+    ], key=lambda x: x["id"])
+
+
 if __name__ == "__main__":
     QURAN_DATA.clear()  # Clear any existing data
     load_quran_data()

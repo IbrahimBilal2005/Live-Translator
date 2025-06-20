@@ -1,6 +1,5 @@
 from fastapi import APIRouter, UploadFile, File
-from fastapi.responses import JSONResponse
-from services.transcribe_service import transcribe_and_match
+from services.audio_match_pipeline import transcribe_and_match
 
 router = APIRouter() 
 
