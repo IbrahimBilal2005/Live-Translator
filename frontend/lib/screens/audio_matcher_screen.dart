@@ -1,11 +1,15 @@
-// audio_matcher_screen.dart
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import '../constants/styles.dart';
 import '../services/api_service.dart';
+import '../widgets/ayah_card.dart';
+import '../widgets/bismillah_header.dart';
+import '../widgets/recording_button.dart';
+import '../widgets/status_prompt.dart';
 
 class AudioMatcherScreen extends StatefulWidget {
   const AudioMatcherScreen({super.key});
@@ -15,22 +19,17 @@ class AudioMatcherScreen extends StatefulWidget {
 }
 
 class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
-  static const double arabicFontSize = 26.0;
-  static const double translationFontSize = 14.0;
-  static const double surahNameFontSize = 50.0;
-  static const double bismillahFontSize = 20.0;
-  static const double referenceFontSize = 13.0;
-
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
   final ItemScrollController _itemScrollController = ItemScrollController();
-  final ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
 
   bool _isRecording = false;
+  bool _isFindingMatch = false;
   String? _filePath;
   String? _transcription;
   Map<String, dynamic>? _matchedAyah;
   List<dynamic>? _fullSurah;
-  bool _isFindingMatch = false;
 
   String _listeningText = "Listening";
   Timer? _dotTimer;
@@ -52,10 +51,11 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
     final path = '${tempDir.path}/recorded.aac';
 
     await _recorder.startRecorder(toFile: path);
+
     _dotCount = 0;
     _listeningText = "Listening";
     _dotTimer?.cancel();
-    _dotTimer = Timer.periodic(Duration(milliseconds: 300), (timer) {
+    _dotTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
       setState(() {
         _dotCount = (_dotCount + 1) % 4;
         _listeningText = "Listening" + "." * _dotCount;
@@ -97,6 +97,7 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
 
   void _scrollToMatchedAyah() {
     if (_matchedAyah == null || _fullSurah == null) return;
+
     final index = _fullSurah!.indexWhere(
       (ayah) => ayah['arabic_text'] == _matchedAyah!['arabic_text'],
     );
@@ -150,98 +151,18 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
         children: [
           Expanded(
             child: Center(
-              child: _isFindingMatch
-                  ? _buildFindingMatchIndicator()
-                  : _isRecording
-                      ? _buildRecordingIndicator()
-                      : _buildIdlePrompt(),
+              child: StatusPrompt(
+                isRecording: _isRecording,
+                isFindingMatch: _isFindingMatch,
+                listeningText: _listeningText,
+              ),
             ),
           ),
-          _buildRecordingButton(),
+          RecordingButton(
+            isRecording: _isRecording,
+            onPressed: _isRecording ? _stopRecording : _startRecording,
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFindingMatchIndicator() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
-        CircularProgressIndicator(color: Colors.greenAccent),
-        SizedBox(height: 20),
-        Text(
-          "Finding the matching verse...",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildIdlePrompt() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.mic_none, size: 80, color: Colors.white54),
-        const SizedBox(height: 20),
-        const Text(
-          "Press the button below and recite a verse.\nWe'll try to find the match for you.",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecordingIndicator() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 10),
-        Icon(Icons.mic, size: 80, color: Colors.greenAccent),
-        const SizedBox(height: 20),
-        Text(
-          _listeningText,
-          style: const TextStyle(
-            color: Colors.greenAccent,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          "Recite clearly and we'll find the verse.",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecordingButton() {
-    return Center(
-      child: ElevatedButton.icon(
-        icon: Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.white),
-        label: Text(
-          _isRecording ? "Stop Recording" : "Start Recording",
-          style: const TextStyle(color: Colors.white),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor:
-              _isRecording ? Colors.redAccent : Colors.greenAccent.withOpacity(0.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          foregroundColor: Colors.white,
-        ),
-        onPressed: _isRecording ? _stopRecording : _startRecording,
       ),
     );
   }
@@ -255,7 +176,7 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (_matchedAyah != null)
-            _buildMatchedHeader()
+            BismillahHeader(surahName: _matchedAyah!['surah_name'] ?? '')
           else
             Expanded(
               child: Center(
@@ -272,37 +193,12 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
             ),
           if (_fullSurah != null && _matchedAyah != null)
             Expanded(child: _buildAyahList()),
-          _buildRecordingButton(),
+          RecordingButton(
+            isRecording: _isRecording,
+            onPressed: _isRecording ? _stopRecording : _startRecording,
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMatchedHeader() {
-    return Column(
-      children: [
-        Text(
-          _matchedAyah!['surah_name'] ?? '',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: surahNameFontSize,
-            fontFamily: 'Amiri',
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          "﷽",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: bismillahFontSize,
-            fontFamily: 'Amiri',
-            color: Colors.white70,
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
     );
   }
 
@@ -316,51 +212,7 @@ class _AudioMatcherScreenState extends State<AudioMatcherScreen> {
         final isMatch = _matchedAyah != null &&
             _matchedAyah!['arabic_text'] == ayah['arabic_text'];
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 12.0, bottom: 6),
-                child: Text(
-                  '${ayah['surah']}:${ayah['ayah']}',
-                  style: const TextStyle(
-                    fontSize: referenceFontSize,
-                    color: Colors.white54,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 40.0),
-                child: Text(
-                  ayah['arabic_text'],
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontSize: arabicFontSize,
-                    fontFamily: 'Amiri',
-                    color: isMatch ? Colors.greenAccent : Colors.white,
-                    height: 1.8,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.only(right: 40.0),
-                child: Text(
-                  ayah['translation'],
-                  textAlign: TextAlign.left,
-                  style: const TextStyle(
-                    fontSize: translationFontSize,
-                    color: Colors.white70,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Divider(color: Colors.white24, thickness: 1),
-            ],
-          ),
-        );
+        return AyahCard(ayah: ayah, isMatch: isMatch);
       },
     );
   }

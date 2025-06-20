@@ -12,10 +12,21 @@ class MainHomeScreen extends StatefulWidget {
 class _MainHomeScreenState extends State<MainHomeScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const AudioMatcherScreen(),
-    const SurahReaderScreen(),
+  static const List<Widget> _screens = [
+    AudioMatcherScreen(),
+    SurahReaderScreen(),
   ];
+
+  static const List<BottomNavigationBarItem> _navItems = [
+    BottomNavigationBarItem(icon: Icon(Icons.mic), label: 'Match'),
+    BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Read'),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +37,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         selectedItemColor: Colors.greenAccent,
         unselectedItemColor: Colors.white54,
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.mic), label: 'Match'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Read'),
-        ],
+        onTap: _onItemTapped,
+        items: _navItems,
       ),
     );
   }

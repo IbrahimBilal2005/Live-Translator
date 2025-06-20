@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 
+/// A service class to handle API requests for the QuranLive app
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:8000';
+  static String get _baseUrl => AppConfig.baseUrl;
 
-  // Upload audio and get transcription/match
+  /// Upload an audio file and receive a transcription match
   static Future<Map<String, dynamic>> uploadAudio(File file) async {
-    final uri = Uri.parse('$baseUrl/audio/transcribe2');
+    final uri = Uri.parse('$_baseUrl/audio/transcribe2');
     final request = http.MultipartRequest('POST', uri)
       ..files.add(await http.MultipartFile.fromPath('file', file.path));
 
@@ -15,27 +17,30 @@ class ApiService {
       final response = await request.send();
       if (response.statusCode == 200) {
         final res = await http.Response.fromStream(response);
-        final jsonData = jsonDecode(utf8.decode(res.bodyBytes));
-        return jsonData;
+        return jsonDecode(utf8.decode(res.bodyBytes));
       } else {
         return {
           'error': true,
-          'message': 'Server responded with status ${response.statusCode}'
+          'message': 'Server responded with status ${response.statusCode}',
         };
       }
     } catch (e) {
-      return {'error': true, 'message': 'Error uploading audio: $e'};
+      return {
+        'error': true,
+        'message': 'Error uploading audio: $e',
+      };
     }
   }
 
-  // Fetch full list of Surahs
+  /// Fetch the full list of surahs
   static Future<List<Map<String, dynamic>>> fetchSurahList() async {
-    final uri = Uri.parse('$baseUrl/quran/surahs');
+    final uri = Uri.parse('$_baseUrl/quran/surahs');
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
-        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-        return List<Map<String, dynamic>>.from(decoded);
+        return List<Map<String, dynamic>>.from(
+          jsonDecode(utf8.decode(response.bodyBytes)),
+        );
       } else {
         throw Exception('Failed to load surah list');
       }
@@ -44,9 +49,9 @@ class ApiService {
     }
   }
 
-  // ✅ Fetch one surah by ID (needed by SurahReaderScreen)
+  /// Fetch a single surah by ID
   static Future<Map<String, dynamic>> fetchSurahById(int surahId) async {
-    final uri = Uri.parse('$baseUrl/quran/surahs/$surahId');
+    final uri = Uri.parse('$_baseUrl/quran/surahs/$surahId');
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
@@ -59,9 +64,9 @@ class ApiService {
     }
   }
 
-  // Fetch a random ayah with utf8 decode
+  /// Fetch a random ayah
   static Future<Map<String, dynamic>?> fetchRandomAyah() async {
-    final uri = Uri.parse('$baseUrl/quran/random-ayah');
+    final uri = Uri.parse('$_baseUrl/quran/random-ayah');
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {

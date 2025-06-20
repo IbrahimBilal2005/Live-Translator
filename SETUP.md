@@ -62,13 +62,17 @@ flutter pub get
 
 # Run the Flutter app on your emulator or connected device
 flutter run
+
+# If you're using a real phone or iOS simulator, run with your local IP:
+flutter run --dart-define=API_BASE_URL=http://<your-ip>:8000
+
 ```
 
 - To stop the backend or frontend in the terminal, press `Ctrl + C`.
 - In Flutter:
   - Press `r` in the terminal for a **hot reload**
   - Press `R` in the terminal for a **hot restart**
-  
+
 ---
 
 ## 📄 Notes
