@@ -57,13 +57,3 @@ frontend/linux/flutter/ephemeral/
 # OS files
 .DS_Store
 Thumbs.db
-
-# === IMAGES / EXTRAS ===
-
-# Optional: ignore debug/test screenshots
-*.png
-*.jpg
-*.jpeg
-
-# Keep this if flutter_01.png is not needed in version control:
-# frontend/flutter_01.png
