@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AppStyles {
   static const double arabicFontSize = 26.0;
   static const double translationFontSize = 14.0;
