@@ -62,3 +62,7 @@ Thumbs.db
 
 *.jpg
 *.jpeg
+*.png
+# Except the ones in the images folder
+!images/*.png
+
