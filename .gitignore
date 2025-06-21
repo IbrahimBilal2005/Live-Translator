@@ -57,3 +57,8 @@ frontend/linux/flutter/ephemeral/
 # OS files
 .DS_Store
 Thumbs.db
+
+# === IMAGES / EXTRAS ===
+
+*.jpg
+*.jpeg

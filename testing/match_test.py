@@ -2,7 +2,7 @@ import json
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from services.matching_service import match_transcription_to_ayah
+from services.ayah_matcher import match_transcription_to_ayah
 from data_access.quranDAO import load_quran_data, QURAN_DATA
 
 def simulate_transcribe2_from_normalized(normalized_input: str):
